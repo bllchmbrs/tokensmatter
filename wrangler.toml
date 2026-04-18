@@ -13,6 +13,6 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "tokensmatter"
-database_id = "00000000-0000-0000-0000-000000000000"
-preview_database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "d42a6028-5afb-4449-83a9-23b79c770f06"
+preview_database_id = "d42a6028-5afb-4449-83a9-23b79c770f06"
 migrations_dir = "migrations"
