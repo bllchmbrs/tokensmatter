@@ -365,6 +365,26 @@ export default function Leaderboard() {
           </div>
         )}
 
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          <Link
+            href="/"
+            style={{
+              display: "inline-block",
+              padding: "0.6rem 2rem",
+              fontSize: "13px",
+              fontFamily: "inherit",
+              fontWeight: 600,
+              background: "#e5a536",
+              color: "#0a0e17",
+              border: "1px solid #e5a536",
+              borderRadius: 6,
+              textDecoration: "none",
+            }}
+          >
+            Submit a prompt
+          </Link>
+        </div>
+
         <div
           style={{
             marginTop: "2.5rem",
