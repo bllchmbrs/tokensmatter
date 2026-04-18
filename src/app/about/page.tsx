@@ -177,10 +177,10 @@ export default function About() {
             Two things to know
           </h2>
           <div style={{ margin: "0 0 1rem 0" }}>
-            <strong style={{ color: "#f0f6fc" }}>1. Your text stays in your browser.</strong>{" "}
-            We parse your input client-side and only send the structured messages
-            to the Anthropic token counting API. We never store your prompt text.
-            We only record the anonymous token counts.
+            <strong style={{ color: "#f0f6fc" }}>1. We do not store your prompt text.</strong>{" "}
+            Your input is parsed in the browser, sent to our server for token counting,
+            and forwarded to the Anthropic token counting API. We do not save the
+            prompt text in our database. We only store anonymous token-count metrics.
           </div>
           <div style={{ margin: "0 0 1rem 0" }}>
             <strong style={{ color: "#f0f6fc" }}>2. This is not an Anthropic product.</strong>{" "}

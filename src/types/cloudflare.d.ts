@@ -33,9 +33,18 @@ declare global {
     prepare(query: string): D1PreparedStatement;
   }
 
+  interface RateLimitResult {
+    success: boolean;
+  }
+
+  interface RateLimit {
+    limit(options: { key: string }): Promise<RateLimitResult>;
+  }
+
   interface CloudflareEnv {
     ANTHROPIC_API_KEY: string;
     DB: D1Database;
+    TOKEN_COUNT_LIMITER: RateLimit;
   }
 }
 

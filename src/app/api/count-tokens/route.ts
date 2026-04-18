@@ -20,9 +20,6 @@ type ModelId = keyof typeof PRICING;
 const MODELS: ModelId[] = ["claude-opus-4-6", "claude-opus-4-7"];
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_TOTAL_TEXT_CHARS = 50_000;
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 12;
-const requestTimestamps = new Map<string, number[]>();
 
 interface Message {
   role: "user" | "assistant";
@@ -57,33 +54,13 @@ function validateSystem(raw: unknown): string | null {
   return raw.trim();
 }
 
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
+function getRateLimitKey(request: NextRequest): string {
+  const clientIp = request.headers.get("cf-connecting-ip");
+  if (clientIp) {
+    return `ip:${clientIp}`;
   }
 
-  return request.headers.get("x-real-ip") ?? "unknown";
-}
-
-function checkRateLimit(ip: string): number {
-  const now = Date.now();
-  const recent = (requestTimestamps.get(ip) ?? []).filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
-  );
-
-  if (recent.length >= MAX_REQUESTS_PER_WINDOW) {
-    requestTimestamps.set(ip, recent);
-    const oldest = recent[0];
-    return Math.max(
-      1,
-      Math.ceil((RATE_LIMIT_WINDOW_MS - (now - oldest)) / 1000)
-    );
-  }
-
-  recent.push(now);
-  requestTimestamps.set(ip, recent);
-  return 0;
+  return "ip:unknown";
 }
 
 function totalTextChars(body: CountTokensBody): number {
@@ -92,6 +69,7 @@ function totalTextChars(body: CountTokensBody): number {
 }
 
 export async function POST(request: NextRequest) {
+  const env = getCloudflareContext().env;
   const contentLength = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
     return NextResponse.json(
@@ -100,21 +78,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const retryAfter = checkRateLimit(getClientIp(request));
-  if (retryAfter > 0) {
+  const rateLimit = await env.TOKEN_COUNT_LIMITER.limit({
+    key: getRateLimitKey(request),
+  });
+  if (!rateLimit.success) {
     return NextResponse.json(
       { error: "Rate limit exceeded. Try again in a few minutes." },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(retryAfter),
-        },
-      }
+      { status: 429 }
     );
   }
 
   try {
-    const apiKey = getCloudflareContext().env.ANTHROPIC_API_KEY;
+    const apiKey = env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "ANTHROPIC_API_KEY is not configured." },

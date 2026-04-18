@@ -20,3 +20,11 @@ database_name = "tokensmatter"
 database_id = "d42a6028-5afb-4449-83a9-23b79c770f06"
 preview_database_id = "d42a6028-5afb-4449-83a9-23b79c770f06"
 migrations_dir = "migrations"
+
+[[ratelimits]]
+name = "TOKEN_COUNT_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 12
+  period = 60

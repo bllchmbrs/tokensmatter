@@ -59,3 +59,4 @@ Wrangler now runs the OpenNext build automatically via the `[build]` hook in `wr
 
 - Prompt text is not stored. Only anonymous token-count comparison records are written to D1.
 - The local `next dev` flow uses OpenNext's Cloudflare dev integration so route handlers can access `env.DB` and `env.ANTHROPIC_API_KEY`.
+- `/api/count-tokens` uses Cloudflare's native Workers Rate Limiting binding keyed by `CF-Connecting-IP` instead of trusting spoofable forwarding headers.
