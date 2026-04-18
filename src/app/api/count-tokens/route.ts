@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { recordComparison } from "@/lib/db";
 
@@ -74,6 +75,18 @@ function getRateLimitKey(request: NextRequest): string {
 function totalTextChars(body: CountTokensBody): number {
   return body.messages.reduce((sum, message) => sum + message.content.length, 0) +
     (body.system?.length ?? 0);
+}
+
+function buildSubmissionId(body: CountTokensBody): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        version: 1,
+        system: body.system ?? "",
+        messages: body.messages,
+      })
+    )
+    .digest("hex");
 }
 
 export async function POST(request: NextRequest) {
@@ -152,7 +165,7 @@ export async function POST(request: NextRequest) {
     const assistantMessages = messages.filter(
       (message) => message.role === "assistant"
     );
-    const submissionId = crypto.randomUUID();
+    const submissionId = buildSubmissionId({ messages, system });
 
     const results: Record<
       string,
