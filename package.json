@@ -1,0 +1,27 @@
+{
+  "name": "token-cost-calc",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node ./node_modules/next/dist/bin/next dev",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "preview": "node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js preview",
+    "deploy": "node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js deploy",
+    "cf-typegen": "node ./node_modules/wrangler/bin/wrangler.js types --env-interface CloudflareEnv cloudflare-env.d.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@opennextjs/cloudflare": "^1.8.0",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.8.0",
+    "wrangler": "^4.12.0"
+  }
+}
