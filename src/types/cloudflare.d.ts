@@ -44,6 +44,7 @@ declare global {
   interface CloudflareEnv {
     ANTHROPIC_API_KEY: string;
     DB: D1Database;
+    STATS_LIMITER: RateLimit;
     TOKEN_COUNT_LIMITER: RateLimit;
   }
 }

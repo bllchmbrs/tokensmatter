@@ -26,5 +26,13 @@ name = "TOKEN_COUNT_LIMITER"
 namespace_id = "1001"
 
   [ratelimits.simple]
-  limit = 12
+  limit = 60
+  period = 60
+
+[[ratelimits]]
+name = "STATS_LIMITER"
+namespace_id = "1002"
+
+  [ratelimits.simple]
+  limit = 120
   period = 60

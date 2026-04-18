@@ -20,6 +20,8 @@ type ModelId = keyof typeof PRICING;
 const MODELS: ModelId[] = ["claude-opus-4-6", "claude-opus-4-7"];
 const MAX_BODY_BYTES = 64 * 1024;
 const MAX_TOTAL_TEXT_CHARS = 50_000;
+const MAX_MESSAGE_COUNT = 100;
+const MAX_SINGLE_TEXT_CHARS = 20_000;
 
 interface Message {
   role: "user" | "assistant";
@@ -33,6 +35,7 @@ interface CountTokensBody {
 
 function validateMessages(raw: unknown): Message[] | null {
   if (!Array.isArray(raw)) return null;
+  if (raw.length === 0 || raw.length > MAX_MESSAGE_COUNT) return null;
 
   const messages: Message[] = [];
   for (const msg of raw) {
@@ -41,16 +44,18 @@ function validateMessages(raw: unknown): Message[] | null {
     const { role, content } = msg as Record<string, unknown>;
     if (role !== "user" && role !== "assistant") return null;
     if (typeof content !== "string" || !content.trim()) return null;
+    if (content.length > MAX_SINGLE_TEXT_CHARS) return null;
 
     messages.push({ role, content: content.trim() });
   }
 
-  return messages.length > 0 ? messages : null;
+  return messages;
 }
 
 function validateSystem(raw: unknown): string | null {
   if (raw == null) return "";
   if (typeof raw !== "string") return null;
+  if (raw.length > MAX_SINGLE_TEXT_CHARS) return null;
   return raw.trim();
 }
 
@@ -97,10 +102,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const rawBody = await request.text();
+    const bodyBytes = Buffer.byteLength(rawBody, "utf8");
+    if (bodyBytes > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        { error: "Request body is too large." },
+        { status: 413 }
+      );
+    }
+
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON payload." },
+        { status: 400 }
+      );
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid request payload." },
+        { status: 400 }
+      );
+    }
+
     const client = new Anthropic({ apiKey });
-    const body = await request.json();
-    const messages = validateMessages(body?.messages);
-    const system = validateSystem(body?.system);
+    const parsedBody = body as Record<string, unknown>;
+    const messages = validateMessages(parsedBody.messages);
+    const system = validateSystem(parsedBody.system);
 
     if (!messages || system == null) {
       return NextResponse.json(
