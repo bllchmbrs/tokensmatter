@@ -555,7 +555,7 @@ export default function Home() {
           href="/leaderboard"
           style={{ color: "#8b949e", textDecoration: "none", fontSize: "13px" }}
         >
-          Leaderboard
+          Community Averages
         </Link>
         <Link
           href="/about"

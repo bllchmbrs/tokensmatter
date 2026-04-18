@@ -36,7 +36,7 @@ export default function About() {
           href="/leaderboard"
           style={{ color: "#8b949e", textDecoration: "none", fontSize: "13px" }}
         >
-          Leaderboard
+          Community Averages
         </Link>
         <span style={{ color: "#e5a536", fontWeight: 700, fontSize: "13px" }}>
           About
@@ -159,7 +159,7 @@ export default function About() {
           <p style={{ margin: "0 0 1.5rem 0" }}>
             The{" "}
             <Link href="/leaderboard" style={{ color: "#e5a536", textDecoration: "underline" }}>
-              leaderboard
+              community averages page
             </Link>{" "}
             aggregates anonymous comparisons from everyone who uses the tool, so
             you can see the real-world average increase across different prompt

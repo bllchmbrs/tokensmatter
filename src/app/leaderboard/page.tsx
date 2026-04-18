@@ -119,7 +119,7 @@ export default function Leaderboard() {
           Calculate
         </Link>
         <span style={{ color: "#e5a536", fontWeight: 700, fontSize: "13px" }}>
-          Leaderboard
+          Community Averages
         </span>
         <Link
           href="/about"
@@ -147,11 +147,11 @@ export default function Leaderboard() {
             letterSpacing: "-0.02em",
           }}
         >
-          Leaderboard
+          Community Averages
         </h1>
         <p style={{ color: "#8b949e", margin: "0 0 2rem 0", fontSize: "14px" }}>
-          Anonymous request-token comparisons between requests to Opus 4.6 and
-          requests to Opus 4.7
+          Anonymous request-token comparisons from the community, showing how
+          Opus 4.6 and Opus 4.7 differ on real inputs
         </p>
 
         {loading && (
@@ -288,7 +288,7 @@ export default function Leaderboard() {
                 borderRadius: "8px 8px 0 0",
               }}
             >
-              Last 50 comparisons (most recent first)
+              Recent anonymous comparisons (last 50, most recent first)
             </div>
             <div style={{ overflowX: "auto" }}>
               <table

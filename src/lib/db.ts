@@ -1,9 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-interface ComparisonColumn {
-  name: string;
-}
-
 interface AggregateStatsRow {
   unique_submissions: number;
   avg_request_tokens_46: number;
@@ -23,57 +19,8 @@ interface LeaderboardRow {
   created_at: string;
 }
 
-let schemaReady: Promise<void> | null = null;
-
 function getDb(): D1Database {
   return getCloudflareContext().env.DB;
-}
-
-async function getComparisonColumns(database: D1Database): Promise<string[]> {
-  const result = await database
-    .prepare("PRAGMA table_info(comparisons)")
-    .all<ComparisonColumn>();
-
-  return (result.results ?? []).map((row) => row.name);
-}
-
-async function ensureSchema(): Promise<void> {
-  if (!schemaReady) {
-    schemaReady = (async () => {
-      const database = getDb();
-      const columns = await getComparisonColumns(database);
-      const hasLegacySchema = columns.includes("input_hash");
-      const hasCurrentSchema =
-        columns.includes("submission_id") &&
-        columns.includes("request_tokens") &&
-        columns.includes("request_cost");
-
-      if (hasLegacySchema && !hasCurrentSchema) {
-        await database.exec(`
-          DROP TABLE IF EXISTS comparisons;
-          DROP INDEX IF EXISTS idx_comparisons_hash_model;
-        `);
-      }
-
-      await database.exec(`
-        CREATE TABLE IF NOT EXISTS comparisons (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          submission_id TEXT NOT NULL,
-          model TEXT NOT NULL,
-          request_tokens INTEGER NOT NULL,
-          request_cost REAL NOT NULL,
-          created_at TEXT NOT NULL DEFAULT (datetime('now'))
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_comparisons_submission_model
-        ON comparisons(submission_id, model);
-      `);
-    })().catch((error) => {
-      schemaReady = null;
-      throw error;
-    });
-  }
-
-  await schemaReady;
 }
 
 export async function recordComparison(
@@ -82,8 +29,6 @@ export async function recordComparison(
   requestTokens: number,
   requestCost: number
 ): Promise<void> {
-  await ensureSchema();
-
   await getDb()
     .prepare(
       `INSERT OR IGNORE INTO comparisons (
@@ -106,8 +51,6 @@ export interface AggregateStats {
 }
 
 export async function getAggregateStats(): Promise<AggregateStats | null> {
-  await ensureSchema();
-
   const row = await getDb()
     .prepare(
       `SELECT
@@ -167,8 +110,6 @@ export interface LeaderboardEntry {
 }
 
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
-  await ensureSchema();
-
   const result = await getDb()
     .prepare(
       `SELECT

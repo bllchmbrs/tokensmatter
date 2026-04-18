@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 import { recordComparison } from "@/lib/db";
@@ -31,6 +30,10 @@ interface Message {
 interface CountTokensBody {
   messages: Message[];
   system?: string;
+}
+
+interface AnthropicCountTokensResponse {
+  input_tokens: number;
 }
 
 function validateMessages(raw: unknown): Message[] | null {
@@ -127,7 +130,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = new Anthropic({ apiKey });
     const parsedBody = body as Record<string, unknown>;
     const messages = validateMessages(parsedBody.messages);
     const system = validateSystem(parsedBody.system);
@@ -161,7 +163,7 @@ export async function POST(request: NextRequest) {
     > = {};
 
     for (const model of MODELS) {
-      const countResult = await client.messages.countTokens({
+      const countResult = await countTokensWithAnthropic(apiKey, {
         model,
         messages,
         ...(system ? { system } : {}),
@@ -197,4 +199,40 @@ export async function POST(request: NextRequest) {
       { status: 502 }
     );
   }
+}
+
+async function countTokensWithAnthropic(
+  apiKey: string,
+  body: {
+    model: ModelId;
+    messages: Message[];
+    system?: string;
+  }
+): Promise<AnthropicCountTokensResponse> {
+  const response = await fetch("https://api.anthropic.com/v1/messages/count_tokens", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Anthropic count_tokens failed with ${response.status}: ${truncateForLog(errorText)}`
+    );
+  }
+
+  return (await response.json()) as AnthropicCountTokensResponse;
+}
+
+function truncateForLog(value: string, maxLength = 300): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength)}...`;
 }
