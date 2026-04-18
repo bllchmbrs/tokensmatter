@@ -3,6 +3,10 @@ main = ".open-next/worker.js"
 compatibility_date = "2026-04-17"
 compatibility_flags = ["nodejs_compat"]
 
+[build]
+command = "npm run build:worker"
+watch_dir = ["src", "migrations", "next.config.ts", "open-next.config.ts", "package.json"]
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"

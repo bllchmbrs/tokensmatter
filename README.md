@@ -53,6 +53,8 @@ npm run preview
 npm run deploy
 ```
 
+Wrangler now runs the OpenNext build automatically via the `[build]` hook in `wrangler.toml`, so `wrangler dev` and `wrangler deploy` will generate `.open-next/worker.js` before trying to use it.
+
 ## Notes
 
 - Prompt text is not stored. Only anonymous token-count comparison records are written to D1.
